@@ -1,0 +1,114 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+  @import url("https://fonts.googleapis.com/css2?family=Edu+SA+Beginner:wght@400;700&display=swap");
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  :root {
+    font-size: 20px;
+  }
+  body {
+    font-family: "Edu SA Beginner", sans-serif;
+    margin: 0;
+  }
+  /* typography */
+  h1,
+  p {
+    margin-top: 0;
+  }
+  a:link,
+  a:visited,
+  a:hover,
+  a:active {
+    color: black;
+  }
+  .value {
+    font-size: 3rem;
+  }
+  .container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2em;
+  }
+
+  button {
+    padding: 1em 5em;
+    color: white;
+    background-color: hsl(250deg, 0%, 25%);
+    border: none;
+  }
+
+  button:hover {
+    background-color: hsl(150deg, 40%, 30%);
+  }
+  </style>
+</head>
+
+<body>
+  <h1>Addition/Subtraction using States and Websockets</h1>
+  <p>PS: not using Redux, just plain JS (and the websocket is Python ofc)! <br /> link to the Websocket: <a href="wss://websocket-calculator-gls-link.herokuapp.com/">wss://websocket-calculator-gls-link.herokuapp.com/</a><br />Github: <a href="https://github.com/genelorenzSarmiento0408/websocket-calculator-server/tree/main">https://github.com/genelorenzSarmiento0408/websocket-calculator-server/tree/main</a></p>
+  <p class="value">Value: <span id="value">0</span></p>
+  <div class="container">
+    <h1>Click the button to add the number</h1>
+    <button id="add">5</button>
+  </div>
+  <div class="container">
+    <h1>Click the button to subtract the value</h1>
+    <button id="minus">5</button>
+  </div>
+  <h2>Features:</h2>
+  <p>Can add/subtract, call Websockets, and store it in local storage</p>
+  <script>
+    const socket = new WebSocket(
+      "wss://websocket-calculator-gls-link.herokuapp.com/"
+    );
+    const valueEl = document.getElementById("value");
+    let value = localStorage.getItem("currentValue");
+    if (value == null) {
+      value = valueEl.textContent;
+      localStorage.setItem("currentValue", value);
+    } else {
+      valueEl.textContent = value;
+    }
+
+    socket.addEventListener("open", () => {
+      console.log("connected");
+    });
+    socket.addEventListener("error", (e) => {
+      console.error("Err", JSON.stringify(e));
+    });
+
+    const buttons = document.querySelectorAll("button");
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => {
+        socket.send(
+          JSON.stringify({
+            type: button.id,
+            value: parseInt(button.textContent),
+            currentValue: parseInt(value)
+          })
+        );
+      });
+    });
+    socket.addEventListener("message", (e) => {
+      let data = JSON.parse(e.data);
+      if (data.ok) {
+        value = data.currentValue;
+        localStorage.setItem("currentValue", value);
+        return (valueEl.textContent = value);
+      }
+    });
+
+  </script>
+</body>
+
+</html>
